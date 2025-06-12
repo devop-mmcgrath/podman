@@ -46,6 +46,9 @@ var (
 func updateFlags(cmd *cobra.Command) {
 	common.DefineCreateDefaults(&updateOpts)
 	common.DefineCreateFlags(cmd, &updateOpts, entities.UpdateMode)
+	flags := cmd.Flags()
+	flags.StringSliceVar(&updateOpts.Ulimit, "ulimit", nil, "Ulimit options")
+	_ = cmd.RegisterFlagCompletionFunc("ulimit", common.AutocompleteUlimit)
 }
 
 func init() {
@@ -177,6 +180,18 @@ func update(cmd *cobra.Command, args []string) error {
 			return err
 		}
 		opts.UnsetEnv = env
+	}
+
+	if cmd.Flags().Changed("ulimit") {
+		ulimits, err := cmd.Flags().GetStringSlice("ulimit")
+		if err != nil {
+			return err
+		}
+		rlimits, err := specgenutil.GenRlimits(ulimits)
+		if err != nil {
+			return err
+		}
+		opts.Rlimits = rlimits
 	}
 
 	rep, err := registry.ContainerEngine().ContainerUpdate(context.Background(), opts)

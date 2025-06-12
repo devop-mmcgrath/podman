@@ -411,8 +411,9 @@ func UpdateContainer(w http.ResponseWriter, r *http.Request) {
 	runtime := r.Context().Value(api.RuntimeKey).(*libpod.Runtime)
 	decoder := utils.GetDecoder(r)
 	query := struct {
-		RestartPolicy  string `schema:"restartPolicy"`
-		RestartRetries uint   `schema:"restartRetries"`
+		RestartPolicy  string   `schema:"restartPolicy"`
+		RestartRetries uint     `schema:"restartRetries"`
+		Rlimits        []string `schema:"rlimits"`
 	}{
 		// override any golang type defaults
 	}
@@ -462,6 +463,7 @@ func UpdateContainer(w http.ResponseWriter, r *http.Request) {
 		RestartRetries:                  restartRetries,
 		Env:                             options.Env,
 		UnsetEnv:                        options.UnsetEnv,
+		Rlimits:                         query.Rlimits,
 	}
 
 	err = ctr.Update(updateOptions)

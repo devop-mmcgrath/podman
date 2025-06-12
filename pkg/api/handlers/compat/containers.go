@@ -827,6 +827,7 @@ func UpdateContainer(w http.ResponseWriter, r *http.Request) {
 		ChangedHealthCheckConfiguration: &define.UpdateHealthCheckConfig{},
 		RestartPolicy:                   restartPolicy,
 		RestartRetries:                  restartRetries,
+		Rlimits:                         options.Rlimits,
 	}
 
 	if err := ctr.Update(updateOptions); err != nil {
