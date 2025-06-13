@@ -43,6 +43,13 @@ $ podman secret rm --all
 4ee314533b16a47d0d8c6e775
 ```
 
+Remove secrets mysecret1 and mysecret2, ignoring errors if they don't exist.
+```
+$ podman secret rm --ignore mysecret1 mysecret2 nonexistentsecret
+mysecret1
+mysecret2
+```
+
 ## SEE ALSO
 **[podman(1)](podman.1.md)**, **[podman-secret(1)](podman-secret.1.md)**
 
