@@ -56,6 +56,26 @@ Add a named system connection to local tcp socket:
 ```
 $ podman system connection add debug tcp://localhost:8080
 ```
+
+Add a system connection with specific port:
+```
+$ podman system connection add --port 2222 staging user@staging.example.com
+```
+
+Add a system connection with custom socket path:
+```
+$ podman system connection add --socket-path /tmp/podman.sock local unix:///run/podman/podman.sock
+```
+
+Add a system connection and make it the default:
+```
+$ podman system connection add --default production user@prod.example.com
+```
+
+Add a system connection combining multiple options:
+```
+$ podman system connection add --port 2222 --default --identity ~/.ssh/prod_key production ssh://deploy@prod.example.com
+```
 ## SEE ALSO
 **[podman(1)](podman.1.md)**, **[podman-system(1)](podman-system.1.md)**, **[podman-system-connection(1)](podman-system-connection.1.md)**
 
