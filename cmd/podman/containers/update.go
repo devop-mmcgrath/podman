@@ -7,6 +7,7 @@ import (
 
 	"github.com/containers/podman/v5/cmd/podman/common"
 	"github.com/containers/podman/v5/cmd/podman/registry"
+	"github.com/containers/podman/v5/cmd/podman/validate"
 	"github.com/containers/podman/v5/libpod/define"
 	"github.com/containers/podman/v5/pkg/domain/entities"
 	"github.com/containers/podman/v5/pkg/specgen"
@@ -24,7 +25,9 @@ var (
 		Short:             "Update an existing container",
 		Long:              updateDescription,
 		RunE:              update,
-		Args:              cobra.ExactArgs(1),
+		Args: func(cmd *cobra.Command, args []string) error {
+			return validate.IDOrLatestArgs(cmd, args)
+		},
 		ValidArgsFunction: common.AutocompleteContainers,
 		Example:           `podman update --cpus=5 foobar_container`,
 	}
@@ -40,7 +43,8 @@ var (
 	}
 )
 var (
-	updateOpts entities.ContainerCreateOptions
+	updateOpts   entities.ContainerCreateOptions
+	updateLatest bool
 )
 
 func updateFlags(cmd *cobra.Command) {
@@ -53,12 +57,14 @@ func init() {
 		Command: updateCommand,
 	})
 	updateFlags(updateCommand)
+	validate.AddLatestFlag(updateCommand, &updateLatest)
 
 	registry.Commands = append(registry.Commands, registry.CliCommand{
 		Command: containerUpdateCommand,
 		Parent:  containerCmd,
 	})
 	updateFlags(containerUpdateCommand)
+	validate.AddLatestFlag(containerUpdateCommand, &updateLatest)
 }
 
 func GetChangedHealthCheckConfiguration(cmd *cobra.Command, vals *entities.ContainerCreateOptions) define.UpdateHealthCheckConfig {
@@ -146,10 +152,14 @@ func update(cmd *cobra.Command, args []string) error {
 	healthCheckConfig := GetChangedHealthCheckConfiguration(cmd, &updateOpts)
 
 	opts := &entities.ContainerUpdateOptions{
-		NameOrID:                        strings.TrimPrefix(args[0], "/"),
 		Resources:                       s.ResourceLimits,
 		ChangedHealthCheckConfiguration: &healthCheckConfig,
 		DevicesLimits:                   GetChangedDeviceLimits(s),
+		Latest:                          updateLatest,
+	}
+
+	if !updateLatest {
+		opts.NameOrID = strings.TrimPrefix(args[0], "/")
 	}
 
 	if cmd.Flags().Changed("restart") {

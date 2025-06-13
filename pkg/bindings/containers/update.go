@@ -19,6 +19,12 @@ func Update(ctx context.Context, options *types.ContainerUpdateOptions) (string,
 		return "", err
 	}
 
+	// Resolve container ID if using latest flag
+	containerID := options.NameOrID
+	if options.Latest {
+		containerID = "latest"
+	}
+
 	params := url.Values{}
 	if options.RestartPolicy != nil {
 		params.Set("restartPolicy", *options.RestartPolicy)
@@ -46,11 +52,11 @@ func Update(ctx context.Context, options *types.ContainerUpdateOptions) (string,
 		return "", err
 	}
 	stringReader := strings.NewReader(requestData)
-	response, err := conn.DoRequest(ctx, stringReader, http.MethodPost, "/containers/%s/update", params, nil, options.NameOrID)
+	response, err := conn.DoRequest(ctx, stringReader, http.MethodPost, "/containers/%s/update", params, nil, containerID)
 	if err != nil {
 		return "", err
 	}
 	defer response.Body.Close()
 
-	return options.NameOrID, response.Process(nil)
+	return containerID, response.Process(nil)
 }
